@@ -1,8 +1,19 @@
-
+import time
 import os
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, BatchNormalization, LeakyReLU, Conv2DTranspose, Reshape, Conv2D, Flatten, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
+
+############## PREPARING DATASET
+BATCH_SIZE=32
+TOTAL_IMAGES=1591
+NO_OF_BATCHES=(TOTAL_IMAGES//BATCH_SIZE)+1 if(TOTAL_IMAGES%BATCH_SIZE) else TOTAL_IMAGES//BATCH_SIZE
+
+image_gen=ImageDataGenerator(rescale=1./255)
+train_gen=image_gen.flow_from_directory(batch_size=BATCH_SIZE, directory='dataset', shuffle='True', target_size=(28,28),color_mode='grayscale', class_mode=None)
+
 
 gen_model=Sequential([
                     Dense(7*7*256, use_bias=False, input_shape=(100,)),
@@ -41,7 +52,7 @@ discr_model.summary()
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 def discriminator_loss(real_output, fake_output):
-    real_loss = cross_entropy(tf.ones_like(real_ouput), real_output)
+    real_loss = cross_entropy(tf.ones_like(real_output), real_output)
     fake_loss = cross_entropy(tf.ones_like(fake_output), fake_output)
     total_loss=real_loss+fake_loss
     return total_loss
@@ -77,42 +88,47 @@ def train_step(images):
         real_output=discr_model(images, training=True)
         fake_output=discr_model(generated_images, training=True)
         
-        discriminator_loss=discriminator_loss(real_output, fake_output)
+        disc_loss=discriminator_loss(real_output, fake_output)
         gen_loss=generator_loss(fake_output)
         
-    gradients_of_generator=gen_tape.gradient(gen_loss, gen_model.trainbable, variables)
-    disc_loss=discriminator_loss(real_output, fake_output)
-    gradients_of_discriminator = disc_tape.gradient(disc_loss, discr_model.trainable_variables)
     
     gradients_of_generator = gen_tape.gradient(gen_loss, gen_model.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discr_model.trainable_variables)
 
     generator_optimizer.apply_gradients(zip(gradients_of_generator, gen_model.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discr_model.trainable_variables))
-
+    return (disc_loss,gen_loss) # I AM ADDING THIS LINE SO THAT I CAN PRINT OUT THE LOSSES EVERY EPOCH
+#BUT I AM REALLY NOT SURE IF THESE LOSSES RETURNED ARE THE "EPOCH" LOSSES, THIS IS JUST SOME KIND OF INDICATION. NO NEED TO USE THEM FOR ACTUAL MEASURES.
 
 
 def train(dataset, epochs):
   for epoch in range(epochs):
     start = time.time()
-
+    
+    i=1
     for image_batch in dataset:
-      train_step(image_batch)
+      if(i>NO_OF_BATCHES):
+        #train_step(image_batch)
+        break
+      else:
+        disc_loss,gen_loss=train_step(image_batch)
+        i+=1
+    
 
     # Produce images for the GIF as we go
-    display.clear_output(wait=True)
-    generate_and_save_images(gen_model,
-                             epoch + 1,
-                             seed)
-
+   #display.clear_output(wait=True)
+    #generate_and_save_images(gen_model, epoch + 1, seed)
+                             
     # Save the model every 15 epochs
     if (epoch + 1) % 15 == 0:
       checkpoint.save(file_prefix = checkpoint_prefix)
 
     print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+    print(f"Disriminator Loss: {disc_loss}, Generator Loss:{gen_loss}")
 
   # Generate after the final epoch
-  display.clear_output(wait=True)
+ #display.clear_output(wait=True)
+
   generate_and_save_images(gen_model,
                            epochs,
                            seed)
@@ -135,5 +151,24 @@ def generate_and_save_images(model, epoch, test_input):
   plt.show()
 
 
-train(train_dataset, EPOCHS)
+
+
+####
+'''
+Now this train_dataset below needs to be a tensor like:
+
+tf.Tensor(
+[[2 3]
+ [5 6]], shape=(2, 2), dtype=int32)
+tf.Tensor(
+[[6 7]
+ [3 4]], shape=(2, 2), dtype=int32)
+tf.Tensor([[1 2]], shape=(1, 2), dtype=int32)
+
+
+You see? it is a tensor with batch size 2 and a buffer size/total size of 5
+
+similiarly make tesors of images with certain batch sizes
+'''
+train(train_gen, EPOCHS)
 
