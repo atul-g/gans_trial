@@ -1,3 +1,4 @@
+
 import os
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -66,11 +67,11 @@ EPOCHS=50
 noise_dim=100
 num_examples_to_generate=16
 
-seed=tf.random.normal(['num_examples_to_generate', noise_dim])
+seed=tf.random.normal([num_examples_to_generate, noise_dim])
 
 def train_step(images):
     noise=tf.random.normal([BATCH_SIZE, noise_dim])
-    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape"
+    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         generated_images = gen_model(noise, training=True)
         
         real_output=discr_model(images, training=True)
@@ -90,4 +91,49 @@ def train_step(images):
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discr_model.trainable_variables))
 
 
+
+def train(dataset, epochs):
+  for epoch in range(epochs):
+    start = time.time()
+
+    for image_batch in dataset:
+      train_step(image_batch)
+
+    # Produce images for the GIF as we go
+    display.clear_output(wait=True)
+    generate_and_save_images(gen_model,
+                             epoch + 1,
+                             seed)
+
+    # Save the model every 15 epochs
+    if (epoch + 1) % 15 == 0:
+      checkpoint.save(file_prefix = checkpoint_prefix)
+
+    print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
+
+  # Generate after the final epoch
+  display.clear_output(wait=True)
+  generate_and_save_images(gen_model,
+                           epochs,
+                           seed)
+
+
+
+def generate_and_save_images(model, epoch, test_input):
+  # Notice `training` is set to False.
+  # This is so all layers run in inference mode (batchnorm).
+  predictions = model(test_input, training=False)
+
+  fig = plt.figure(figsize=(4,4))
+
+  for i in range(predictions.shape[0]):
+      plt.subplot(4, 4, i+1)
+      plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
+      plt.axis('off')
+
+  plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
+  plt.show()
+
+
+train(train_dataset, EPOCHS)
 
