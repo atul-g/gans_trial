@@ -7,8 +7,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 
 ############## PREPARING DATASET
-BATCH_SIZE=32
-TOTAL_IMAGES=1591
+BATCH_SIZE=64
+TOTAL_IMAGES=5357
 NO_OF_BATCHES=(TOTAL_IMAGES//BATCH_SIZE)+1 if(TOTAL_IMAGES%BATCH_SIZE) else TOTAL_IMAGES//BATCH_SIZE
 
 image_gen=ImageDataGenerator(rescale=1./255)
@@ -97,7 +97,7 @@ def train_step(images):
 
     generator_optimizer.apply_gradients(zip(gradients_of_generator, gen_model.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discr_model.trainable_variables))
-    return (disc_loss,gen_loss) # I AM ADDING THIS LINE SO THAT I CAN PRINT OUT THE LOSSES EVERY EPOCH
+    #return (disc_loss,gen_loss) # I AM ADDING THIS LINE SO THAT I CAN PRINT OUT THE LOSSES EVERY EPOCH
 #BUT I AM REALLY NOT SURE IF THESE LOSSES RETURNED ARE THE "EPOCH" LOSSES, THIS IS JUST SOME KIND OF INDICATION. NO NEED TO USE THEM FOR ACTUAL MEASURES.
 
 
@@ -111,7 +111,8 @@ def train(dataset, epochs):
         #train_step(image_batch)
         break
       else:
-        disc_loss,gen_loss=train_step(image_batch)
+        #disc_loss,gen_loss=train_step(image_batch)
+        train_step(image_batch)
         i+=1
     
 
@@ -124,7 +125,7 @@ def train(dataset, epochs):
       checkpoint.save(file_prefix = checkpoint_prefix)
 
     print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
-    print(f"Disriminator Loss: {disc_loss}, Generator Loss:{gen_loss}")
+    #print(f"Disriminator Loss: {disc_loss}, Generator Loss:{gen_loss}")
 
   # Generate after the final epoch
  #display.clear_output(wait=True)
