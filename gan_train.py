@@ -7,7 +7,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 
 ############## PREPARING DATASET
-BATCH_SIZE=64
+BATCH_SIZE=32
 TOTAL_IMAGES=5357
 NO_OF_BATCHES=(TOTAL_IMAGES//BATCH_SIZE)+1 if(TOTAL_IMAGES%BATCH_SIZE) else TOTAL_IMAGES//BATCH_SIZE
 
@@ -31,6 +31,7 @@ gen_model=Sequential([
                     ])
 
 gen_model.summary()
+
 
 generated_image=gen_model(tf.random.normal([1,100]))
 #print(generated_image)
@@ -127,9 +128,13 @@ def train(dataset, epochs):
     print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
     #print(f"Disriminator Loss: {disc_loss}, Generator Loss:{gen_loss}")
 
+
+  #saving model in keras hdf5 format
+  gen_model.save(os.getcwd()+f"/gen_model_{EPOCHS}.h5")
+  
   # Generate after the final epoch
  #display.clear_output(wait=True)
-
+ 
   generate_and_save_images(gen_model,
                            epochs,
                            seed)
