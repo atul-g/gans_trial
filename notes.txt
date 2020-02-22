@@ -1,0 +1,16 @@
+1. To make a genrator model, you need to use Conv2DTranspose layers. Pretty 
+much the same as upsampling layers who only double/triple/quadruple input matrices
+depending on the stride length of the kernel.
+
+Learn about this layer from here: https://machinelearningmastery.com/upsampling-and-transpose-convolution-layers-for-generative-adversarial-networks/
+
+2. The input dense unit which you see in your generator model is 7*7*256.
+
+this is always reshaped, in our case reshaped to 7*7 and 256 feature maps.
+
+3. As layers go deeper, we keep reducing the feature maps which will become 1 at 
+the end. This 1 feature map in the end will be our output generated image.
+
+4. Mainly it's the stride lengths which determine the size of the next layer/size 
+of the output feature map.
+
