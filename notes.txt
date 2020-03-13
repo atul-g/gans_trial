@@ -14,3 +14,6 @@ the end. This 1 feature map in the end will be our output generated image.
 4. Mainly it's the stride lengths which determine the size of the next layer/size 
 of the output feature map.
 
+5. CHECK THIS ARTICLE FOR ALL HYPERPARAMETERS SELECTION:
+https://medium.com/@utk.is.here/keep-calm-and-train-a-gan-pitfalls-and-tips-on-training-generative-adversarial-networks-edd529764aa9
+
